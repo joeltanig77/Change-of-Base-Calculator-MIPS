@@ -11,7 +11,6 @@
 	debug: .asciiz "Debug Statement"
 	nullValue : .asciiz "\n"
 	errIntPrompt: .asciiz "Please input a number that is 2-16 inclusive,you entered: "
-	
 .text
 
 interfaceUser:
@@ -65,11 +64,16 @@ emptyStringBC1:
 
 
 baseCasesForInts:
-	#Need to check waht to do if its a negative number
+	#Need to check what to do if its a negative number
+	blt $s1, 0, twoComplement 
 	blt $s1, 2, errorIntValue 
 	bgt $s1, 16, errorIntValue
 	###If the int is real then do the formula
 	j fin
+
+twoComplement:
+	#Flip the bits and add one
+
 
 
 errorIntValue:
