@@ -3,12 +3,14 @@
 .data
 	enterStringPrompt: .asciiz "Enter your string: " 
 	extraspace: .asciiz " "
-	intPrompt: .asciiz "Int value is "
+	intPrompt: .asciiz "\nInt value is "
 	buffer:   .space 300 #Length that I sent to max is 300 chars
 	enterIntPrompt: .asciiz "Enter your int that is between 2-16: "
 	emptyStringVar: .space 10 #Reserve 10 spaces for safety
 	empSt: .asciiz ""
 	debug: .asciiz "Debug Statement"
+	nullValue : .asciiz "\n"
+	errIntPrompt: .asciiz "Please input a number that is 2-16 inclusive,you entered: "
 	
 .text
 
@@ -42,12 +44,13 @@ interfaceUser:
 baseCasesForStrings:
 	
 	lbu $t0, ($s0) #Look a char asacii value to t0
-	bgt $t0, 49, stringBC2 #We have a string! LETS GOOOOOOOOO 3:15 AM
-	beq $t0, $0, emptyStringBC1 #If the string is empty, beq
+	la $t1, nullValue
+	lbu $t2, ($t1)
+	beq $t2, $t0, emptyStringBC1 #If the string is empty, be
+	bgt $t0, 49, baseCasesForInts #We have a string! LETS GOOOOOOOOO 3:15 AM
 	
 	
-	
-	j fin2
+	j fin2 #It should never hit this case
 	
 	
 
@@ -56,22 +59,34 @@ emptyStringBC1:
 	li $v0, 4	#Call a service number of 4 to print the string
 	la $a0, debug 	#Load address of prompt
 	syscall
-	
 	j fin 
 	
-	
-	
-	
-stringBC2:
-	addi $s7, $0, 1 #REMOVE LATER: This checks if we have a string/ascaii val
-	
-	j fin
 
 
 
 baseCasesForInts:
+	#Need to check waht to do if its a negative number
+	blt $s1, 2, errorIntValue 
+	bgt $s1, 16, errorIntValue
+	###If the int is real then do the formula
+	j fin
+
+
+errorIntValue:
+	addi $s7, $0, 0 #Zero return value 
+
+	li $v0, 4	#Call a service number of 4 to print the string
+	la $a0, errIntPrompt 	#Load address of prompt
+	syscall
+	# What I was doing was printing what the users input was might del thiss
+	li $v0, 1
+	move $a0, $s1
+	syscall
+	j fin
+
+formula:
 	
-	
+
 
 fin2: #Debug case PLEASE DONT ENTER STOP
 		#Ends the Program
