@@ -1,4 +1,10 @@
 #Joel Tanig
+#Debug tool 
+	#li $v0, 4	#Call a service number of 4 to print the string
+	#la $a0, debug 	#Load address of prompt
+	#syscall
+	#j fin 
+	
 
 .data
 	enterStringPrompt: .asciiz "Enter your string: " 
@@ -14,6 +20,8 @@
 .text
 
 interfaceUser:
+	addi $s3, $s3, 0 #Assign t1 as 0 as a check for the stringCount 
+	addi $s2 $s2,0 #init the count for the digitString
 	li $v0, 4 #Call this to start printing a string
 	la $a0, enterStringPrompt #Load address into prompt
 	syscall
@@ -37,7 +45,7 @@ interfaceUser:
          
 	
 
-#(s0 = String),(s1 = int)
+#(s0 = String),(s1 = int)(s2 = countForDigitString)
 #I need to loop in each char and check if its passes the ascaii tests and if it has
 # a null turm, string
 baseCasesForStrings:
@@ -68,13 +76,16 @@ baseCasesForInts:
 	blt $s1, 0, twoComplement 
 	blt $s1, 2, errorIntValue 
 	bgt $s1, 16, errorIntValue
-	###If the int is real then do the formula
-	j fin
+	###If the int is real then do the count digitSring then bracefor impact then formula
+	j countDigitString
 
-twoComplement:
+twoComplement: # TODO
 	#Flip the bits and add one
-
-
+	subi $s1, $s1, 48 #Maybe 0 
+	addi $s1, $s1 , 1
+	#Might have to check if the the twocomplement number is still legal, we will see 
+	
+	j countDigitString
 
 errorIntValue:
 	addi $s7, $0, 0 #Zero return value 
@@ -88,7 +99,27 @@ errorIntValue:
 	syscall
 	j fin
 
-formula:
+
+countDigitString: # TODO/problem here
+	lbu $t0, 0($s0)
+	beq $t0, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
+	addi $s0, $s0, 1 #Go to the next char 
+	addi $s2, $s2, 1 #increment the countForDigitStringCount
+	j countDigitString
+	
+	
+
+
+#(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) 
+stringToInt: # TODO
+	subi $s2, $s2, 1
+	li $v0, 1 #Print the int
+	move $a0, $s2 #Return statement for int
+	syscall
+	
+	
+	
+	
 	
 
 
