@@ -90,12 +90,14 @@ baseCasesForStrings1: #TODO
 #($t0 = this is the char that we are at)
 baseCasesForStrings2: #Something is going on here!!!!
 	lbu $t0, 0($s0)
+	beq $s5, -7777, skip ########################################### Start here Trying to fix this which is trying to skip the negative value at first glance you got this!
 	bgt $t0, 71, errorStringValue
 	blt $t0, 47, errorStringValue 
-	#Need to check the numbers ascaii and do checks ###########################
-
+	#Need to check NEGATIVE SYMBOL STILL
 	
-	addi $s0, $s0, 1 #Go to the next string char
+	skip:
+		addi $s0, $s0, 1 #Go to the next string char
+		addi $s5, $s5, 0 #Reset the s5 so it does now checks to see if the errorStringValue occurs
 
 
 	j baseCasesForInts #If it reaches this case, then we know it is a legal String 
@@ -172,20 +174,35 @@ stringToInt: # TODO
 	move $a0, $s2 #Return statement for int
 	syscall
 	
-	add $t0, $0, $s2 # Saves $t0 as the length of the digitString (N)
-	addi $t1, $0, 0 #digit = 0
+	add $s4, $0, $s2 # Saves $t0 as the length of the digitString (N)
+	addi $s0, $0, 0 #digit = 0
 	addi $t2, $0, 0 #result = 0
 	addi $t3, $0, 1 #positionValue
 	
 	while:
-		blt $t1, $t0, fin
-		lbu $t0, 0($s0) #Get the char in the string 
-		beq $t0, 45, addtheNegative
-		beq $t0, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
+		blt $s0, $s4, fin #(while digit < N)
+		lbu $s6, 0($s0) #Get the char in the string 
+		beq $s6, 45, addtheNegative
+		beq $s6, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
 		########################## Stopped here
+		
+		jal convertDigit
 	
 	addtheNegative:
 		
+
+		
+
+
+
+#(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) (s3 = 0 for a global check) ($s4 = N) (s6 = currentDigit)
+convertDigit:
+	
+
+
+
+
+
 
 fin2: #Debug case PLEASE DONT ENTER STOP
 		#Ends the Program
