@@ -88,12 +88,12 @@ baseCasesForStrings1: #TODO
 
 
 #($t0 = this is the char that we are at)
-baseCasesForStrings2: 
-	lbu $t0, 1($s0)
+baseCasesForStrings2: #Something is going on here!!!!
+	lbu $t0, 0($s0)
 	bgt $t0, 71, errorStringValue
 	blt $t0, 47, errorStringValue 
 	#Need to check the numbers ascaii and do checks ###########################
-	
+
 	
 	addi $s0, $s0, 1 #Go to the next string char
 
@@ -135,13 +135,11 @@ baseCasesForInts:
 
 
 
-twoComplement: # TODO
-	#Flip the bits and add one
-	subi $s1, $s1, 48 #Maybe 0 
-	addi $s1, $s1 , 1
-	#Might have to check if the the twocomplement number is still legal, we will see 
+twoComplement: # TODO ($s5 = global flag for seeing if its a negative)
+	add $s5, $0, -7777 #a flag to add a negative
 	
-	j baseCasesForInts
+	
+	j baseCasesForStrings2
 
 errorIntValue:
 	addi $s7, $0, 0 #Zero return value 
@@ -160,6 +158,7 @@ countDigitString:
 	lbu $t0, 0($s0)
 	beq $t0, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
 	addi $s0, $s0, 1 #Go to the next char 
+	beq $s0, 45, countDigitString #If you encounter a negative symbol, skip it
 	addi $s2, $s2, 1 #increment the countForDigitStringCount
 	j countDigitString
 	
@@ -168,7 +167,7 @@ countDigitString:
 
 #(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) (s3 = 0 for a global check) ($s4 = N)
 stringToInt: # TODO
-	subi $s2, $s2, 1 #Might have to delete this
+	
 	li $v0, 1 #Print the int
 	move $a0, $s2 #Return statement for int
 	syscall
@@ -179,13 +178,14 @@ stringToInt: # TODO
 	addi $t3, $0, 1 #positionValue
 	
 	while:
-		blt $t1, $t0, fin 
+		blt $t1, $t0, fin
+		lbu $t0, 0($s0) #Get the char in the string 
+		beq $t0, 45, addtheNegative
+		beq $t0, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
+		########################## Stopped here
 	
-	
-	
-	
-	
-
+	addtheNegative:
+		
 
 fin2: #Debug case PLEASE DONT ENTER STOP
 		#Ends the Program
