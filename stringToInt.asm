@@ -17,9 +17,29 @@
 	debug: .asciiz "Debug Statement"
 	nullValue : .asciiz "\n"
 	errIntPrompt: .asciiz "Please input a number that is 2-16 inclusive,you entered: "
+	negativeSign:.asciiz "-"
+	errStringPrompt: .asciiz "Illegal string inputted, please enter a legal string and try again"
+	errStringEmptyPrompt: .asciiz "Really bro, an empty string, I see how it is, please enter a legal string and try again"
+	
+	
+	
+	
+	A: .asciiz "A"
+	B: .asciiz "B"
+	C: .asciiz "C"
+	D: .asciiz "D"
+	E: .asciiz "E"
+	F: .asciiz "F"
+	
+	
+	
+	
 .text
 
-interfaceUser:
+
+#Do, if its a negative string like (-test) do two numbers 
+
+interfaceUser: 
 	addi $s3, $s3, 0 #Assign t1 as 0 as a check for the stringCount 
 	addi $s2 $s2,0 #init the count for the digitString
 	li $v0, 4 #Call this to start printing a string
@@ -48,23 +68,59 @@ interfaceUser:
 #(s0 = String),(s1 = int)(s2 = countForDigitString)
 #I need to loop in each char and check if its passes the ascaii tests and if it has
 # a null turm, string
-baseCasesForStrings:
-	
+baseCasesForStrings1: #TODO
+
 	lbu $t0, ($s0) #Look a char asacii value to t0
 	la $t1, nullValue
 	lbu $t2, ($t1)
-	beq $t2, $t0, emptyStringBC1 #If the string is empty, be
-	bgt $t0, 49, baseCasesForInts #We have a string! LETS GOOOOOOOOO 3:15 AM
+	la $t4, negativeSign 
+	lbu $t3, ($t4) 
 	
 	
-	j fin2 #It should never hit this case
+	#The beqs!
+	beq $t2, $t0, emptyStringBC1 #If the string is empty, beq
+	beq $t0, $t4, twoComplement #If the string has a negative, do two's complement
+		
 	
 	
+	j baseCasesForStrings2 #Then we can assume we have a hopefully legal string!
+	
+
+
+#($t0 = this is the char that we are at)
+baseCasesForStrings2: 
+	lbu $t0, 1($s0)
+	bgt $t0, 71, errorStringValue
+	blt $t0, 47, errorStringValue 
+	#Need to check the numbers ascaii and do checks ###########################
+	
+	
+	addi $s0, $s0, 1 #Go to the next string char
+
+
+	j baseCasesForInts #If it reaches this case, then we know it is a legal String 
+
+
+errorStringValue:
+	addi $s7, $0, 0 #Zero return value 
+
+	li $v0, 4	#Call a service number of 4 to print the string
+	la $a0, errStringPrompt 	#Load address of prompt
+	syscall
+	# What I was doing was printing what the users input was might del thiss
+	li $v0, 1
+	move $a0, $s1
+	syscall
+	j fin
+
+
+
+
 
 emptyStringBC1:
 	addi $s7, $0, 0 #Zero return value 
 	li $v0, 4	#Call a service number of 4 to print the string
-	la $a0, debug 	#Load address of prompt
+	la $a0, errStringEmptyPrompt	#Load address of prompt
 	syscall
 	j fin 
 	
@@ -72,12 +128,12 @@ emptyStringBC1:
 
 
 baseCasesForInts:
-	#Need to check what to do if its a negative number
-	blt $s1, 0, twoComplement 
 	blt $s1, 2, errorIntValue 
 	bgt $s1, 16, errorIntValue
 	###If the int is real then do the count digitSring then bracefor impact then formula
 	j countDigitString
+
+
 
 twoComplement: # TODO
 	#Flip the bits and add one
@@ -85,7 +141,7 @@ twoComplement: # TODO
 	addi $s1, $s1 , 1
 	#Might have to check if the the twocomplement number is still legal, we will see 
 	
-	j countDigitString
+	j baseCasesForInts
 
 errorIntValue:
 	addi $s7, $0, 0 #Zero return value 
@@ -100,7 +156,7 @@ errorIntValue:
 	j fin
 
 
-countDigitString: # TODO/problem here
+countDigitString:
 	lbu $t0, 0($s0)
 	beq $t0, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
 	addi $s0, $s0, 1 #Go to the next char 
@@ -110,12 +166,20 @@ countDigitString: # TODO/problem here
 	
 
 
-#(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) 
+#(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) (s3 = 0 for a global check) ($s4 = N)
 stringToInt: # TODO
-	subi $s2, $s2, 1
+	subi $s2, $s2, 1 #Might have to delete this
 	li $v0, 1 #Print the int
 	move $a0, $s2 #Return statement for int
 	syscall
+	
+	add $t0, $0, $s2 # Saves $t0 as the length of the digitString (N)
+	addi $t1, $0, 0 #digit = 0
+	addi $t2, $0, 0 #result = 0
+	addi $t3, $0, 1 #positionValue
+	
+	while:
+		blt $t1, $t0, fin 
 	
 	
 	
