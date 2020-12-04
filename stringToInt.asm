@@ -10,6 +10,7 @@
 	enterStringPrompt: .asciiz "Enter your string: " 
 	extraspace: .asciiz " "
 	intPrompt: .asciiz "\nInt value is "
+	intNegativePrompt: .asciiz "\nInt value is -" 
 	buffer:   .space 300 #Length that I sent to max is 300 chars
 	enterIntPrompt: .asciiz "Enter your int that is between 2-16: "
 	emptyStringVar: .space 10 #Reserve 10 spaces for safety
@@ -20,6 +21,7 @@
 	negativeSign:.asciiz "-"
 	errStringPrompt: .asciiz "Illegal string inputted, please enter a legal string and try again"
 	errStringEmptyPrompt: .asciiz "Really bro, an empty string, I see how it is, please enter a legal string and try again"
+	errWrongBase: .asciiz "You have entered a base that is impossible to convert with this string, please enter a new base and try again"
 	
 	
 .text
@@ -28,7 +30,6 @@
 #Do, if its a negative string like (-test) do two numbers 
 
 interfaceUser: 
-	addi $s3, $s3, 0 #Assign t1 as 0 as a check for the stringCount 
 	addi $s2 $s2,0 #init the count for the digitString
 	li $v0, 4 #Call this to start printing a string
 	la $a0, enterStringPrompt #Load address into prompt
@@ -38,6 +39,7 @@ interfaceUser:
          la $a0, buffer #load byte space into address
          li $a1, 300 #allot the byte space for string
          move $s0,$a0 #save string to s0
+         add $s3, $0, $s0 #Copy the user's string that we will manipulate later in the formula
          syscall
          
          li $v0, 4 #Call this to start printing a string 
@@ -164,39 +166,72 @@ presetVar:
 	
 
 
-#(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) (s3 = 0 for a global check) ($s4 = N)
+#(s0 = String/digitString, or $s3(use this), s1 = int/base) (s2 = countForDigitString) ($s4 = N)
 stringToInt: # TODO
-	addi $s6, $0, 0 #Reset $s6 for reuse
 	
-	#Debug Statement ################################ Turn this back on when you get here!!
+
+	add $s4, $0, $s2 #Saves $t0 as the length of the digitString (N) or index
+	
+	#Debug Statement, Turn this back on when you get here!!
 	li $v0, 1 #Print the int
-	move $a0, $s2 #Return statement for int
+	move $a0, $s4 #Return statement for int
 	syscall
 	
-	add $s4, $0, $s2 # Saves $t0 as the length of the digitString (N)
+	
 	addi $s0, $0, 0 #digit = 0
 	addi $t2, $0, 0 #result = 0
 	addi $t3, $0, 1 #positionValue
 	
 	while:
-		blt $s0, $s4, fin #(while digit < N)
-		lbu $s6, 0($s0) #Get the char in the string 
-		beq $s6, 45, addtheNegative
-		beq $s6, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
-		########################## Stopped here
+		lbu $s6, 0($s3) #Get the char in the string 
+		beq $s6, 45, addtheNegative #Add the negative sign before the int prints
+		beq $s6, 10, fin #If the string is empty, beq to the formula ############### Might have to change this
 		
 		jal convertDigit
+		
+		move $s7, $v0 #Take the return value from convertDigit and save it to $s7
+		
+		addi $s3, $s3, 1 #Look at the next char
+		
+		j while
+	
 	
 	addtheNegative:
+		add $s5, $0, -7777 #A flag to activate the prompt with the negative symbol
+		addi $s3, $s3, 1 #Look at the next char
+		j while
 		
 
-		
 
 
-
-#(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) (s3 = 0 for a global check) ($s4 = N) (s6 = currentDigit)
+#(s6 = currentChar, s1 = int/base) (s2 = countForDigitString) ($s4 = N or index) 
 convertDigit:
+	bgt $s6, 57, AFcase  
+	add $t0, $0, $s1 #Copy and paste the users base (#t0 = user's base)
+	addi $s1, $0, 0 #Reuse the s value for our int
 	
+	zeroNineCase:
+		subi $s1, $s6, 48 #This now equals the int
+		j convertLoop
+		  
+	
+	AFcase:
+		subi $s1, $s6, 65
+		addi $s1, $s1, 10 #This should now equal the int
+		j convertLoop
+
+	
+	convertLoop:
+		mult $t0, $s4 #userBase^index
+		mflo $t1
+		mult $t1, $s1
+		mflo $t2
+		subi $s4, $s4, 1 #increment the index to subtract 1 
+		
+		move $v0, $t2 #Add the converted value to $v0		
+		
+jr $ra
+
 
 
 
@@ -212,17 +247,32 @@ fin2: #Debug case PLEASE DONT ENTER STOP
 fin:
 	#Add last print statement
 	#Print the prompt
+	beq $s5, -7777, secdPrompt
+	
+	#If it reaches this point then we know it is a positive value
 	li $v0, 4	#Call a service number of 4 to print the string
 	la $a0, intPrompt 	#Load address of prompt
 	syscall
 	
+	j printInt
+	
+	
+secdPrompt:
+	li $v0, 4 #Call a service number of 4 to print the string 
+	la $a0, intNegativePrompt
+	syscall
+	j printInt
+
+	
+
+printInt:
 	li $v0, 1 #Print the int
 	move $a0, $s7 #Return statement for int
 	syscall
 	
 	
 	
-	
+end:
 	#Ends the Program
 	li $v0, 10 #Calls the program to stop with a code of 10
 	syscall
