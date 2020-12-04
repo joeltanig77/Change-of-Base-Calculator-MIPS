@@ -22,18 +22,6 @@
 	errStringEmptyPrompt: .asciiz "Really bro, an empty string, I see how it is, please enter a legal string and try again"
 	
 	
-	
-	
-	A: .asciiz "A"
-	B: .asciiz "B"
-	C: .asciiz "C"
-	D: .asciiz "D"
-	E: .asciiz "E"
-	F: .asciiz "F"
-	
-	
-	
-	
 .text
 
 
@@ -79,7 +67,7 @@ baseCasesForStrings1: #TODO
 	
 	#The beqs!
 	beq $t2, $t0, emptyStringBC1 #If the string is empty, beq
-	beq $t0, $t4, twoComplement #If the string has a negative, do two's complement
+	beq $t0, $t3, twoComplement #If the string has a negative, do two's complement
 		
 	
 	
@@ -87,20 +75,36 @@ baseCasesForStrings1: #TODO
 	
 
 
-#($t0 = this is the char that we are at)
+#($t0 /$s6 = this is the char that we are at)
 baseCasesForStrings2: #Something is going on here!!!!
-	lbu $t0, 0($s0)
-	beq $s5, -7777, skip ########################################### Start here Trying to fix this which is trying to skip the negative value at first glance you got this!
-	bgt $t0, 71, errorStringValue
-	blt $t0, 47, errorStringValue 
-	#Need to check NEGATIVE SYMBOL STILL
+	lbu $s6, ($s0)
+	#DEBUG STATEMENT
+	#li $v0, 1	#Call a service number of 1 to print the int
+	#move $a0, $s6 	#Load address of prompt
+	#syscall
+	
+	beq $s6, 10, baseCasesForInts #If we reach the end of the string, then go to the int base cases
+	beq $s5, -7777, skip #Start here Trying to fix this which is trying to skip the negative value at first glance you got this!
+	bgt $s6, 70, errorStringValue
+	
+	blt $s6, 48, errorStringValue 
+	
+	
+
+	addi $s2, $s2, 1 #increment the countForDigitStringCount
+	
+	
+	
+	#1). Need to cheSck the inbetween values of the ascaii table of symbols (between numbers and letters) ########################## NEXT
+	
 	
 	skip:
 		addi $s0, $s0, 1 #Go to the next string char
-		addi $s5, $s5, 0 #Reset the s5 so it does now checks to see if the errorStringValue occurs
+		addi $s5, $0, 0 #Reset the s5 so it does now checks to see if the errorStringValue occurs
+		j baseCasesForStrings2 #Keep jumping until no char left
 
 
-	j baseCasesForInts #If it reaches this case, then we know it is a legal String 
+	j baseCasesForInts #Should never hit this
 
 
 errorStringValue:
@@ -109,10 +113,7 @@ errorStringValue:
 	li $v0, 4	#Call a service number of 4 to print the string
 	la $a0, errStringPrompt 	#Load address of prompt
 	syscall
-	# What I was doing was printing what the users input was might del thiss
-	li $v0, 1
-	move $a0, $s1
-	syscall
+
 	j fin
 
 
@@ -133,12 +134,12 @@ baseCasesForInts:
 	blt $s1, 2, errorIntValue 
 	bgt $s1, 16, errorIntValue
 	###If the int is real then do the count digitSring then bracefor impact then formula
-	j countDigitString
+	j presetVar
 
 
 
 twoComplement: # TODO ($s5 = global flag for seeing if its a negative)
-	add $s5, $0, -7777 #a flag to add a negative
+	add $s5, $0, -7777 #A flag to add a negative
 	
 	
 	j baseCasesForStrings2
@@ -156,20 +157,18 @@ errorIntValue:
 	j fin
 
 
-countDigitString:
-	lbu $t0, 0($s0)
-	beq $t0, $s3, stringToInt #If the string is empty, beq to the formula ($s3 = 0)
-	addi $s0, $s0, 1 #Go to the next char 
-	beq $s0, 45, countDigitString #If you encounter a negative symbol, skip it
-	addi $s2, $s2, 1 #increment the countForDigitStringCount
-	j countDigitString
-	
+
+presetVar:
+	addi $s6, $0, 0 #Reset $s6 for reuse
+	j stringToInt
 	
 
 
 #(s0 = String/digitString, s1 = int/base) (s2 = countForDigitString) (s3 = 0 for a global check) ($s4 = N)
 stringToInt: # TODO
+	addi $s6, $0, 0 #Reset $s6 for reuse
 	
+	#Debug Statement ################################ Turn this back on when you get here!!
 	li $v0, 1 #Print the int
 	move $a0, $s2 #Return statement for int
 	syscall
