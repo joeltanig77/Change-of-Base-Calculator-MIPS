@@ -162,7 +162,11 @@ errorIntValue:
 
 presetVar:
 	addi $s6, $0, 0 #Reset $s6 for reuse
-	j stringToInt
+	j isCoversionPossible
+
+
+isCoversionPossible:
+	
 	
 
 
