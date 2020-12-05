@@ -78,27 +78,32 @@ baseCasesForStrings1: #TODO
 
 
 #($t0 /$s6 = this is the char that we are at)
-baseCasesForStrings2: #Something is going on here!!!!
+baseCasesForStrings2: 
 	lbu $s6, ($s0)
 	#DEBUG STATEMENT
 	#li $v0, 1	#Call a service number of 1 to print the int
-	#move $a0, $s6 	#Load address of prompt
+	#move $a0, $s1	#Load address of prompt
 	#syscall
 	
 	beq $s6, 10, baseCasesForInts #If we reach the end of the string, then go to the int base cases
-	beq $s5, -7777, skip #Start here Trying to fix this which is trying to skip the negative value at first glance you got this!
-	bgt $s6, 70, errorStringValue
+	beq $s5, -7777, skip #This is a flag that checks if there is a negative sign in the string, if there is skip the base cases and move on to next char
 	
-	blt $s6, 48, errorStringValue 
-	
-	
-
-	addi $s2, $s2, 1 #increment the countForDigitStringCount
+	blt $s6, 65, zeroNineCasee #If we are a number go to the number base case
+	bgt $s6, 58, letterCasee   #If we are a letter go to the letter base case
 	
 	
+	zeroNineCasee:
+		bgt $s6, 58, errorStringValue #This case takes care of the unwanted ascaii symbols in the middle of the numbers and letters
+		blt $s6, 48, errorStringValue
+		j continue
 	
-	#1). Need to cheSck the inbetween values of the ascaii table of symbols (between numbers and letters) ########################## NEXT
+	letterCasee:
+		blt $s6, 65, errorStringValue #This case takes care of the unwanted ascaii symbols in the middle of the numbers and letters
+		bgt $s6, 70, errorStringValue 
+		j continue
 	
+	continue:
+		addi $s2, $s2, 1 #increment the countForDigitStringCount
 	
 	skip:
 		addi $s0, $s0, 1 #Go to the next string char
@@ -162,12 +167,25 @@ errorIntValue:
 
 presetVar:
 	addi $s6, $0, 0 #Reset $s6 for reuse
-	j isCoversionPossible
+	j isConversionPossible #Go back to stringToInt for the meantime 
 
 
-isCoversionPossible:
+isConversionPossible:
+	bgt $s1, 57, AFcase1  
+	zeroNineCase1:
+		########################Right here
 	
 	
+	AFcase1: 
+		
+	
+	j stringToInt #Make this errWrongBaseValue when done
+
+errWrongBasevalue:
+	li $v0, 4
+	la $a0, errWrongBase
+	syscall
+	j fin 
 
 
 #(s0 = String/digitString, or $s3(use this), s1 = int/base) (s2 = countForDigitString) ($s4 = N)
