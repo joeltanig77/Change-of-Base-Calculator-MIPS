@@ -298,4 +298,3 @@ end:
 	#Ends the Program
 	li $v0, 10 #Calls the program to stop with a code of 10
 	syscall
-	
