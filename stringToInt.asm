@@ -22,6 +22,7 @@
 	errStringPrompt: .asciiz "Illegal string inputted, please enter a legal string and try again"
 	errStringEmptyPrompt: .asciiz "Really bro, an empty string, I see how it is, please enter a legal string and try again"
 	errWrongBase: .asciiz "You have entered a base that is impossible to convert with this string, please enter a new base and try again"
+	newLine: .asciiz "\n"
 	
 	
 .text
@@ -167,21 +168,11 @@ errorIntValue:
 
 presetVar:
 	addi $s6, $0, 0 #Reset $s6 for reuse
-	j isConversionPossible #Go back to stringToInt for the meantime 
+	j stringToInt #Go back to stringToInt for the meantime 
 
-
-isConversionPossible:
-	bgt $s1, 57, AFcase1  
-	zeroNineCase1:
-		########################Right here
-	
-	
-	AFcase1: 
-		
-	
-	j stringToInt #Make this errWrongBaseValue when done
 
 errWrongBasevalue:
+	addi $s7, $0, 0 #Zero return value 
 	li $v0, 4
 	la $a0, errWrongBase
 	syscall
@@ -190,31 +181,34 @@ errWrongBasevalue:
 
 #(s0 = String/digitString, or $s3(use this), s1 = int/base) (s2 = countForDigitString) ($s4 = N)
 stringToInt: # TODO
-	
+	################Start here
 
 	add $s4, $0, $s2 #Saves $t0 as the length of the digitString (N) or index
 	
 	#Debug Statement, Turn this back on when you get here!!
-	li $v0, 1 #Print the int
-	move $a0, $s4 #Return statement for int
-	syscall
+	#li $v0, 1 #Print the int
+	#move $a0, $s4 #Return statement for int
+	#syscall
 	
+	add $t4, $0, $s2 #Saves $t0 as the length of the digitString (N) or index
+	addi $s2, $0, 0
 	
 	addi $s0, $0, 0 #digit = 0
 	addi $t2, $0, 0 #result = 0
-	addi $t3, $0, 1 #positionValue
-	
+	addi $s7, $0, 0
 	while:
+		add $t5, $0, $s4 #Copy and paste to $t5
 		lbu $s6, 0($s3) #Get the char in the string 
 		beq $s6, 45, addtheNegative #Add the negative sign before the int prints
-		beq $s6, 10, fin #If the string is empty, beq to the formula ############### Might have to change this
+		#beq $s6, 10, fin #If the string is empty, beq to the formula ############### Might have to change this
+		beq $s4, 0, fin
 		
 		jal convertDigit
 		
-		move $s7, $v0 #Take the return value from convertDigit and save it to $s7
-		
+		move $t6, $v0 #Take the return value from convertDigit and save it to $s7
+		add $s7, $s7, $t6 #Add to the return var running total
 		addi $s3, $s3, 1 #Look at the next char
-		
+		subi $s4, $s4, 1 #Decrement the index
 		j while
 	
 	
@@ -226,44 +220,49 @@ stringToInt: # TODO
 
 
 
-#(s6 = currentChar, s1 = int/base) (s2 = countForDigitString) ($s4 = N or index) 
+#(s6 = currentChar,t0 = base)
 convertDigit:
-	bgt $s6, 57, AFcase  
-	add $t0, $0, $s1 #Copy and paste the users base (#t0 = user's base)
-	addi $s1, $0, 0 #Reuse the s value for our int
+	subi $t5, $t5, 1 #Index/length
+	add $t0, $0, $s1
+	bgt $s6, 64, AFcase  
+	
 	
 	zeroNineCase:
-		subi $s1, $s6, 48 #This now equals the int
+		subi $s2, $s6, 48 #This now equals the int
+		bgt $s2, $s1, errWrongBasevalue  #Is the current char > users base
+		blt $s2, 0, errWrongBasevalue	#Is the current char < 0
+		
 		j convertLoop
 		  
 	
 	AFcase:
-		subi $s1, $s6, 65
-		addi $s1, $s1, 10 #This should now equal the int
+		subi $s2, $s6, 65
+		addi $s2, $s2, 10 #This should now equal the int
+		bgt $s2, $s1, errWrongBasevalue ######Tricky Chicken
 		j convertLoop
 
 	
 	convertLoop:
-		mult $t0, $s4 #userBase^index
-		mflo $t1
-		mult $t1, $s1
-		mflo $t2
-		subi $s4, $s4, 1 #increment the index to subtract 1 
+		beq $t5, 1, cyberPunkContinue #Might have to make this -1 ###############Right here 
+		beq $t5, 0, cx11
 		
-		move $v0, $t2 #Add the converted value to $v0		
-		
-jr $ra
+
+		mul $t0,$t0,$s1 #userBase^index 
+		sub $t5, $t5, 1
+		j convertLoop	
+			
+			
+			cyberPunkContinue:	
+				mul $t3 ,$s2, $t0 #Mult base by int
+				move $v0, $t3 #Add the converted value to $v0
+
+				jr $ra			
 
 
+cx11:
+	move $v0, $s2 #Add the converted value to $v0
+	jr $ra
 
-
-
-
-
-fin2: #Debug case PLEASE DONT ENTER STOP
-		#Ends the Program
-	li $v0, 10 #Calls the program to stop with a code of 10
-	syscall
 
 
 fin:
@@ -298,3 +297,4 @@ end:
 	#Ends the Program
 	li $v0, 10 #Calls the program to stop with a code of 10
 	syscall
+	
