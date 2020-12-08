@@ -223,7 +223,6 @@ fin:
 							#Add last print statement
 							#Print the prompt
 	beq $s5, -7777, secdPrompt
-	
 							#If it reaches this point then we know it is a positive value
 	li $v0, 4					#Call a service number of 4 to print the string
 	la $a0, intPrompt 				#Load address of prompt
