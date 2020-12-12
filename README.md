@@ -1,6 +1,6 @@
 # Change of Base Calculator
 
-This program takes a number or a hexadecimal value from A-F and converts it into base 10. This program also supports negative numbers 
+This program takes a number or a hexadecimal value from A-F and converts it into base 10. This program also supports negative numbers. 
 
 ## Example
 
