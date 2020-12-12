@@ -3,7 +3,7 @@
 	extraspace: .asciiz " "
 	intPrompt: .asciiz "\nThe base 10 value is " 
 	buffer:   .space 300 #Length that I sent to max is 300 chars
-	enterIntPrompt: .asciiz "Enter your int that is between 2-16: "
+	enterIntPrompt: .asciiz "Enter a base that is between 2-16: "
 	emptyStringVar: .space 10 #Reserve 10 spaces for safety
 	empSt: .asciiz ""
 	debug: .asciiz "Debug Statement"
