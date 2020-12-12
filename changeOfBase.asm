@@ -1,30 +1,34 @@
-#Joel Tanig
-#Debug tool 
-	#li $v0, 4	#Call a service number of 4 to print the string
-	#la $a0, debug 	#Load address of prompt
-	#syscall
-	#j fin 
 .data
-	enterStringPrompt: .asciiz "Enter your string: " 
+	enterStringPrompt: .asciiz "Enter your string to convert in base 10: " 
 	extraspace: .asciiz " "
-	intPrompt: .asciiz "\nInt value is "
-	intNegativePrompt: .asciiz "\nInt value is -" 
+	intPrompt: .asciiz "\nThe base 10 value is " 
 	buffer:   .space 300 #Length that I sent to max is 300 chars
 	enterIntPrompt: .asciiz "Enter your int that is between 2-16: "
 	emptyStringVar: .space 10 #Reserve 10 spaces for safety
 	empSt: .asciiz ""
 	debug: .asciiz "Debug Statement"
 	nullValue : .asciiz "\n"
-	errIntPrompt: .asciiz "Please input a number that is 2-16 inclusive,you entered: "
+	errIntPrompt: .asciiz "Please input a base that is 2-16 inclusive,you entered: "
 	negativeSign:.asciiz "-"
 	errStringPrompt: .asciiz "Illegal string inputted, please enter a legal string and try again"
-	errStringEmptyPrompt: .asciiz "Really bro, an empty string, I see how it is, please enter a legal string and try again"
-	errWrongBase: .asciiz "You have entered a base that is impossible to convert with this string, please enter a new base and try again"
+	errStringEmptyPrompt: .asciiz "This field cannot be left blank, please rerun the program and try again"
+	errWrongBase: .asciiz "You have entered a base that is impossible to convert with this value, please enter a legal base and try again"
 	newLine: .asciiz "\n"
-	
+	rerunProgramPrompt: .asciiz "\nRerun the calculator? (press (y) for yes, or any other key for no) " 
 	
 .text
 interfaceUser: 
+							#Reset values for a rerun
+	addi $s0, $0, 0
+	addi $s1, $0, 0
+	addi $s2, $0, 0
+	addi $s3, $0, 0
+	addi $s4, $0, 0
+	addi $s5, $0, 0
+	addi $s6, $0, 0
+	addi $s7, $0, 0
+
+
 	addi $s2 $s2,0 					#init the count for the digitString
 	li $v0, 4 					#Call this to start printing a string
 	la $a0, enterStringPrompt 			#Load address into prompt
@@ -233,8 +237,9 @@ fin:
 	
 secdPrompt:
 	li $v0, 4 					#Call a service number of 4 to print the string 
-	la $a0, intNegativePrompt
+	la $a0, intPrompt
 	syscall
+	mul $s7, $s7, -1				#Turn the positive number into a negative to account for the negative the user inputted
 	j printInt
 
 	
@@ -242,6 +247,21 @@ printInt:
 	li $v0, 1 					#Print the int
 	move $a0, $s7 					#Return statement for int
 	syscall
+	
+	li $v0, 4
+	la $a0, rerunProgramPrompt
+	syscall
+	j maybeReRun
+	
+	
+maybeReRun: 
+	 li $v0,8 					#Read the String 
+         la $a0, buffer 				#load byte space into address
+         li $a1, 300 					#Allot the byte space for string
+         move $s0,$a0 					#Save string to s0
+         syscall
+	 lbu $t0, 0($s0) 				#Get the char in the string 
+	 beq $t0, 121, interfaceUser
 	
 end:
 	#Ends the Program
