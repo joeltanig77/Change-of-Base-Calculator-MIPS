@@ -4,7 +4,7 @@ This program takes a number or a hexadecimal value from A-F and converts it into
 
 ## Example
 
-Example of the program calculator
+Example of the program calculator:
 
 ```
 Enter your string to convert in base 10: -ABC
